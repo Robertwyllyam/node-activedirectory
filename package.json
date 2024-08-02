@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/node-ssha256": "^0.1.2",
+    "dotenv": "^16.4.5",
+    "ldapts": "^7.1.0",
+    "node-ssha256": "^0.1.1"
+  }
+}
