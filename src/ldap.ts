@@ -40,6 +40,20 @@ class ActiveDirectory {
     await this.client.bind(this.username, this.password);
   }
 
+  async authenticate(username: string, password: string) {
+    const client = new Client({
+      url: this.url,
+      tlsOptions: { rejectUnauthorized: false },
+    });
+
+    try {
+      await client.bind(`${username}@my`, password);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
   async _performSearch(filter: string, result?: "unique" | "list") {
     const value = await this.client.search(this.baseDN, { filter });
 
@@ -61,6 +75,27 @@ class ActiveDirectory {
       `&(objectclass=user)(cn=${computerName})`,
       "unique"
     );
+  }
+
+  async createADComputer(computerName: string, ou: string) {
+    return await this.client.add(`CN=${computerName},${ou}`, {
+      cn: computerName,
+      objectclass: "computer",
+      userAccountControl: "544",
+      description: `Computer created by LDAP at : ${new Date().toLocaleString(
+        "pt-BR"
+      )}`,
+    });
+  }
+
+  async deleteADComputer(computerName: string) {
+    const comp = (await this.getADComputer(computerName)) as Entry;
+    if (!comp) throw new Error("Computer not found");
+    await this.client.del(comp.dn);
+  }
+
+  async moveComputerOU(dn: string, targetDn: string) {
+    return await this.client.modifyDN(dn, targetDn);
   }
 
   async getADUser(
@@ -111,5 +146,6 @@ const ad = new ActiveDirectory({
   password: process.env.AD_PASSWORD as string,
   url: process.env.AD_URL as string,
 });
+
 
 export default ad;
